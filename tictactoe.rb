@@ -157,9 +157,9 @@ class Game
 	#Premier joueur aléatoire
 	def rdm_start
 		puts ""
-		sleep(1)
+		sleep(0.5)
 		puts "Tirage au sort du joueur qui va débuter la partie :"
-		sleep(1)
+		sleep(0.5)
 		15.times do
 			print "."
 			sleep(0.15)
