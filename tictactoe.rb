@@ -157,6 +157,7 @@ class Game
 	#Premier joueur aléatoire
 	def rdm_start
 		puts ""
+		sleep(1)
 		puts "Tirage au sort du joueur qui va débuter la partie :"
 		sleep(1)
 		15.times do
@@ -169,17 +170,17 @@ class Game
 			sleep(0.15)
 		end
 
-		@priority = rand(1)
+		@priority = rand(2)
 		puts""
 		sleep(1)
 		print "C'est "
-		if @priority == 0
-			print " #{player1.name} ".white.on_red.bold
-		else
+		if @priority == 1
 			print " #{player2.name} ".white.on_blue.bold
+		else
+			print " #{player1.name} ".white.on_red.bold
 		end
 		puts " qui commence."
-		sleep(2)
+		sleep(1.5)
 	end
 
 	#Méthode pour évaluer s'il existe un vainqueur
