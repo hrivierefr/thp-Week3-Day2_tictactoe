@@ -2,6 +2,8 @@
 
 Exercice réalisé seul, à partir de la mise en situation n°1 : développer les 4 classes (Board, Boardcase, Players, Game)
 
+N'oubliez pas le bundle install avant de faire tourner !
+
 Règles du programme permettant de créer un tic-tac-toe :
 
 - le programme est à deux joueurs only (pas d'intelligence artificielle)
