@@ -1,6 +1,6 @@
 # thp-Week3-Day2_tictactoe
 
-Exercice réalisé seul 
+Exercice réalisé seul, à partir de la mise en situation n°1 : développer les 4 classes (Board, Boardcase, Players, Game)
 
 Règles du programme permettant de créer un tic-tac-toe :
 

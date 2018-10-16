@@ -1,10 +1,12 @@
 #Classe incluant les méthodes relatives au plateau (1 instance par jeu)
 class Board
 
-	attr_accessor :grid
+	attr_accessor :grid, :empty_cases, :playable_grid
 
 	def initialize
-		@grid = Array.new(9)
+		@grid = Array.new(9,"_")
+		@playable_grid = Array.new(9," ")
+		@empty_cases = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 	end
 
 	#Ajout des cases au plateau de jeu
@@ -17,30 +19,51 @@ class Board
 		@grid.each_with_index {|boardcase, i|
 			if i % 3 == 2
 				puts boardcase.value
+				print
 			else 
-				print "#{boardcase.value} "
+				print "#{boardcase.value} | "
 			end				
 		}
 	end
 
-	#Liste des cases pouvant être jouées au prochain tour
-	def list_empty_cases
-		empty_cases = []
-		@grid.each_index {|i|
-			if @grid[i].value == " "
-				empty_cases << i
-			end
-		}
-		return empty_cases
+	def case_value(i)
+		@grid[i].value
 	end
 
+	def fill(i,sign)
+		@grid[i].fill(sign)
+		@empty_cases.delete(i)
+	end
+
+	#Tableau des cases pouvant être jouées au prochain tour
+	def playable_grid
+		@grid.each_index {|i|
+			if i % 3 == 2
+				if @empty_cases.include?(i)
+					puts i
+				else 
+					puts " "
+				end
+			else 
+				if @empty_cases.include?(i)
+					print "#{i} | "
+				else 
+					print "  | "
+				end
+			end
+		}
+	end
 end
 
 #Classe incluant les méthodes relatives aux cases (9 instances par jeu)
 class BoardCase
 	attr_accessor :value
-	def initalize(value=" ")
+	def initialize (value = "_")
 		@value = value
+	end
+
+	def fill(sign)
+		@value = sign
 	end
 end
 
@@ -55,11 +78,17 @@ end
 #Classe décrivant chaque évènement du jeu
 class Game
 
-	attr_accessor :player1, :player2, :grid, :case0, :case1, :case2, :case3, :case4, :case5, :case6, :case7, :case8, :turn, :sign, :new_players
+	attr_accessor :player1, :player2, :grid, :case0, :case1, :case2, :case3, :case4, :case5, :case6, :case7, :case8, :round, :sign, :case_played, :new_players
 	
 	def initialize
 		@player1 = Player.new
 		@player2 = Player.new
+		@grid = Board.new
+		@new_players = true
+	end
+
+	#Méthode d'initialisation du plateau de jeu
+	def game_load
 		@case0 = BoardCase.new
 		@case1 = BoardCase.new
 		@case2 = BoardCase.new
@@ -70,12 +99,6 @@ class Game
 		@case7 = BoardCase.new
 		@case8 = BoardCase.new
 		@grid = Board.new
-		@turn = 1
-		@new_players = true
-	end
-
-	#Méthode d'initialisation du plateau de jeu
-	def board_composition
 		@grid.add_case(@case0, 0)
 		@grid.add_case(@case1, 1)
 		@grid.add_case(@case2, 2)
@@ -85,10 +108,16 @@ class Game
 		@grid.add_case(@case6, 6)
 		@grid.add_case(@case7, 7)
 		@grid.add_case(@case8, 8)
+		@round = 1
+
+		puts ""
+		puts "C'est parti pour le tic-tac-toe de l'enfer !!"
+		puts ""
 	end
 
 	#Méthode de saisie des noms des joueurs
 	def players_names
+		puts ""
 		print "Quel est le nom du joueur n°1 (O) ? > "
 		@player1.name = gets.chomp
 		print "Quel est le nom du joueur n°2 (X) ? > "
@@ -96,27 +125,26 @@ class Game
 	end
 
 	#Méthode pour évaluer s'il existe un vainqueur
-	def winner
-
+	def no_winner
 		i = 0
 		while i < 3
 		#Examen des colonnes
-			if (@grid[i].value != " ") && (@grid[i].value == @grid[i+3].value) && (@grid[i].value == @grid[i+6].value)
-				return true
+			if @grid.empty_cases.include?(i).! && (@grid.case_value(i) == @grid.case_value(i+3)) && (@grid.case_value(i) == @grid.case_value(i+6))
+				return false
 		#Examen des lignes	
-			elsif (@grid[i*3].value != " ") && (@grid[i*3].value == @grid[i*3+1].value) && (@grid[i*3].value == @grid[i*3+2].value)
-				return true				
+			elsif @grid.empty_cases.include?(i*3).! && (@grid.case_value(i*3) == @grid.case_value(i*3+1)) && (@grid.case_value(i*3) == @grid.case_value(i*3+2))
+				return false				
 			end
 			i += 1
 		end
 		
 		#Examen des diagonales
-		if (@grid[0].value != " ") && (@grid[0].value == @grid[4].value) && (@grid[0].value == @grid[8].value)
-			return true
-		elsif (@grid[2].value != " ") && (@grid[2].value == @grid[4].value) && (@grid[2].value == @grid[6].value)
-			return true
-		else
+		if @grid.empty_cases.include?(0).! && (@grid.case_value(0) == @grid.case_value(4)) && (@grid.case_value(0) == @grid.case_value(8))
 			return false
+		elsif @grid.empty_cases.include?(2).! && (@grid.case_value(2) == @grid.case_value(4)) && (@grid.case_value(2) == @grid.case_value(6))
+			return false
+		else
+			return true
 		end
 	end
 
@@ -127,54 +155,98 @@ class Game
 		@grid.display_board #Affichage du plateau
 
 		#Détermination du joueur correspondant à ce tour de jeu
-		if turn.odd?
+		if @round.odd?
 			print player1.name 
-			@sign = "0"
+			@sign = "O"
 		else
 			print player2.name
 			@sign = "X"
 		end
-		puts ", où souhaitez vous jouer ?"
+		puts ", à vous de jouer ! "
 
 		#Saisie du choix de jeu
-		print "Saisissez l'indice de la case parmi : #{@grid.empty_cases} > "
-		case_played = gets.chomp
-		@grid[case_played].value = @sign
+		play
 
-		@turn += 1
+		@grid.fill(@case_played, @sign)
+		@round += 1
 	end
 
-
-
-	def perform
-		if new_players
-			players_names
+	#Choix de la case de jeu
+	def play
+		puts "Choisissez le numéro que vous souhaitez jouer parmi :"
+		@grid.playable_grid
+		print "> "
+		@case_played = gets.chomp.to_i
+		if @grid.empty_cases.include?(@case_played).!
+			puts "Saisie invalide"
+			play
 		end
+	end
 
-		board_composition
-
-		while winner.!
-			turn
+	#Cas du match nul
+	def draw
+		puts ""
+		print "Match nul. Voulez-vous rejouer pour vous départager (o/n) ? > "
+		if gets.chomp == "o"
+			@new_players = false
+			perform
+		else
 		end
+	end
 
-		#Annonce du vainqueur
-		if @sign == "0"
+	#Annonce du vainqueur
+	def winner_claim
+
+		@grid.display_board #Dernier affichage du plateau
+
+		if @sign == "O"
 			print "Bravo #{@player1.name}"
 		elsif @sign == "X"
 			print "Bravo #{@player2.name}"
 		end
 		puts ", vous avez gagné !"
 
-		#Proposition d'un nouveau jeu
+		new_game
+	end
+
+	#Proposition d'un nouveau jeu
+	def new_game
 		print "Souhaitez-vous rejouer (o/n)? > "
 		if gets.chomp == "o"
 			print "avec les mêmes joueurs (o/n) ? > "
 			if gets.chomp == "o"
-				new_players = false
+				@new_players = false
+			else 
+				@new_players = true
 			end
 			perform
+		else
 		end
 	end
+
+
+	#Méthode de gestion du jeu
+	def perform
+
+		#Initialisation du jeu
+		if @new_players
+			players_names
+		end
+		game_load
+
+		#Déroulement du jeu
+		while no_winner && @round < 10
+			turn
+		end
+
+		#Conclusion du jeu
+		if no_winner.!
+			winner_claim
+		else 
+			draw
+		end				
+	end
+
 end
 
 game = Game.new
